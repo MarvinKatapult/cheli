@@ -18,7 +18,7 @@
 
 Logic::Logic( Board * p_board ) : myBoard( p_board ) { }
 
-TList Logic::getLegals( bool p_check_for_checks ) {
+TList Logic::getLegals( bool p_check_for_checks ) const {
     TList moves;
 
     for ( int y = 0; y < BOARD_HEIGHT; y++ ) {
@@ -52,7 +52,7 @@ void Logic::removeIllegalMoves( TList * p_list ) const {
     }
 }
 
-void Logic::getLegals( TList * p_legals, const Square & p_square ) {
+void Logic::getLegals( TList * p_legals, const Square & p_square ) const {
     if ( !p_legals ) return;
 
     const Piece piece = p_square.piece;
@@ -84,14 +84,14 @@ void Logic::getLegals( TList * p_legals, const Square & p_square ) {
     }
 }
 
-void Logic::getLegals( TList * p_legals, int p_x, int p_y ) { 
+void Logic::getLegals( TList * p_legals, int p_x, int p_y ) const { 
     if ( !p_legals ) return;
 
     Square square = myBoard->getSquare( p_x, p_y );
     getLegals( p_legals, square );
 }
 
-void Logic::getLegalsPawn( TList * p_list, const Square & p_start_square ) {
+void Logic::getLegalsPawn( TList * p_list, const Square & p_start_square ) const {
     if ( !p_list ) return; 
 
     getLegalsPawnMove( p_list, p_start_square );
@@ -99,7 +99,7 @@ void Logic::getLegalsPawn( TList * p_list, const Square & p_start_square ) {
     getLegalsPawnEnpassant( p_list, p_start_square );
 }
 
-void Logic::getLegalsBishop( TList * p_list, const Square & p_start_square ) {
+void Logic::getLegalsBishop( TList * p_list, const Square & p_start_square ) const {
     if ( !p_list ) return;
     getLegalsCommon( p_list, p_start_square, Left,    Up   );
     getLegalsCommon( p_list, p_start_square, Right,   Up   );
@@ -107,7 +107,7 @@ void Logic::getLegalsBishop( TList * p_list, const Square & p_start_square ) {
     getLegalsCommon( p_list, p_start_square, Right,   Down );
 }
 
-void Logic::getLegalsRook( TList * p_list, const Square & p_start_square ) {
+void Logic::getLegalsRook( TList * p_list, const Square & p_start_square ) const {
     if ( !p_list ) return;
     getLegalsCommon( p_list, p_start_square, Left,    VNone );
     getLegalsCommon( p_list, p_start_square, Right,   VNone );
@@ -115,7 +115,7 @@ void Logic::getLegalsRook( TList * p_list, const Square & p_start_square ) {
     getLegalsCommon( p_list, p_start_square, HNone,   Down  );
 }
 
-void Logic::getLegalsQueen( TList * p_list, const Square & p_start_square ) {
+void Logic::getLegalsQueen( TList * p_list, const Square & p_start_square ) const {
     if ( !p_list ) return;
     getLegalsCommon( p_list, p_start_square, Left,    VNone );
     getLegalsCommon( p_list, p_start_square, Right,   VNone );
@@ -127,7 +127,7 @@ void Logic::getLegalsQueen( TList * p_list, const Square & p_start_square ) {
     getLegalsCommon( p_list, p_start_square, Right,   Down  );
 }
 
-void Logic::getLegalsKing( TList * p_list, const Square & p_start_square ) {
+void Logic::getLegalsKing( TList * p_list, const Square & p_start_square ) const {
     if ( !p_list ) return;
     getLegalsCommon( p_list, p_start_square, Left,    VNone, 1 );
     getLegalsCommon( p_list, p_start_square, Right,   VNone, 1 );
@@ -139,7 +139,7 @@ void Logic::getLegalsKing( TList * p_list, const Square & p_start_square ) {
     getLegalsCommon( p_list, p_start_square, Right,   Up,    1 );
 }
 
-void Logic::getLegalsKnight( TList * p_list, const Square & p_start_square ) {
+void Logic::getLegalsKnight( TList * p_list, const Square & p_start_square ) const {
     if ( !p_list ) return;
 
     const Piece knight = p_start_square.piece;
@@ -162,7 +162,7 @@ void Logic::getLegalsKnight( TList * p_list, const Square & p_start_square ) {
     }
 }
 
-void Logic::getLegalsPawnMove( TList * p_list, const Square & p_start_square ) {
+void Logic::getLegalsPawnMove( TList * p_list, const Square & p_start_square ) const {
     if ( !p_list ) return;
 
     Piece pawn = p_start_square.piece;
@@ -191,7 +191,7 @@ void Logic::getLegalsPawnMove( TList * p_list, const Square & p_start_square ) {
     }
 }
 
-void Logic::getLegalsPawnCapture( TList * p_list, const Square & p_start_square ) {
+void Logic::getLegalsPawnCapture( TList * p_list, const Square & p_start_square ) const {
     if ( !p_list ) return;
     
     const Piece pawn = p_start_square.piece;
@@ -213,7 +213,7 @@ void Logic::getLegalsPawnCapture( TList * p_list, const Square & p_start_square 
     }
 } 
 
-void Logic::checkPawnCapture( TList * p_list, const Square & p_start_square, const Square & p_dest_square ) {
+void Logic::checkPawnCapture( TList * p_list, const Square & p_start_square, const Square & p_dest_square ) const {
     if ( !p_list ) return;
 
     
@@ -224,7 +224,7 @@ void Logic::checkPawnCapture( TList * p_list, const Square & p_start_square, con
     }
 }
 
-void Logic::getLegalsPawnEnpassant( TList * p_list, const Square & p_start_square ) {
+void Logic::getLegalsPawnEnpassant( TList * p_list, const Square & p_start_square ) const {
     if ( !p_list ) return;
     const int start_x = p_start_square.x;
     const int start_y = p_start_square.y;
@@ -248,7 +248,7 @@ void Logic::getLegalsPawnEnpassant( TList * p_list, const Square & p_start_squar
     }
 }
 
-bool Logic::checkEnpassant( const Square & p_start_square, int p_enemy_pawn_start_row, Logic::HorizontalDirection p_dir ) {
+bool Logic::checkEnpassant( const Square & p_start_square, int p_enemy_pawn_start_row, Logic::HorizontalDirection p_dir ) const {
     const int start_x = p_start_square.x;
     const int start_y = p_start_square.y;
     const int other_pawn_x = start_x + p_dir;
@@ -270,7 +270,7 @@ bool Logic::checkEnpassant( const Square & p_start_square, int p_enemy_pawn_star
     return false;
 }
 
-void Logic::getLegalsCommon( TList * p_list, const Square & p_start_square, HorizontalDirection p_horizontal, VerticalDirection p_vertical, int p_range ) {
+void Logic::getLegalsCommon( TList * p_list, const Square & p_start_square, HorizontalDirection p_horizontal, VerticalDirection p_vertical, int p_range ) const {
     if ( !p_list ) return;
     
     const Piece piece = p_start_square.piece;
@@ -295,7 +295,7 @@ void Logic::getLegalsCommon( TList * p_list, const Square & p_start_square, Hori
     } while( i++ < p_range );
 } 
 
-Pieces::PieceColor Logic::isCheck() {
+Pieces::PieceColor Logic::isCheck() const {
     TList legals = this->getLegals( false );
 
     for ( int i = 0; i < legals.count(); i++ ) {
@@ -314,7 +314,7 @@ Pieces::PieceColor Logic::isCheck() {
     return Pieces::NoColor;
 }
 
-Pieces::PieceColor Logic::isCheckmate() {
+Pieces::PieceColor Logic::isCheckmate() const {
     Pieces::PieceColor in_check = isCheck();
     if ( in_check == Pieces::NoColor ) return Pieces::NoColor;
 
