@@ -2,7 +2,20 @@
 
 typedef char Piece;
 
+#define PIECE_COUNT         6
+#define PIECE_COLOR_COUNT   2
+
 namespace Pieces {
+
+    enum NormPiece {
+        Pawn = 0,
+        Knight,
+        Bishop,
+        Rook,
+        Queen,
+        King,
+        NoNormPiece
+    };
 
     enum PieceSymbol {
         BlackPawn = 'p',
@@ -30,5 +43,6 @@ namespace Pieces {
     /** Utils **/
     bool isPiece( char piece );
     PieceColor getColor( Piece piece );
+    NormPiece getNormPiece( PieceSymbol symbol );
 
 };
