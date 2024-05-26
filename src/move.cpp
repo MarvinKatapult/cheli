@@ -1,6 +1,9 @@
 #include "move.hpp"
 #include "logic.hpp"
+
+#include "tlist.hpp"
 #include "tstring.hpp"
+#include "tlog.hpp"
 
 #include <ctype.h>
 
@@ -35,5 +38,22 @@ TString Move::getNotation() const {
     if ( is_capturing ) str += 'x';
     str += myDestSquare.name();
     return str;
+}
 
+TList Move::getMoves( const TList & p_moves, Pieces::PieceColor p_color ) {
+    TList ret( p_moves );
+    for ( int i = ret.count() - 1; i >= 0; i-- ) {
+        Piece piece = ( (Move *)ret.getValue( i ) )->piece();
+        if ( Pieces::getColor( piece ) != p_color ) {
+            ret.remove( i );
+        } 
+    }
+
+    return ret;
+}
+
+void Move::freeMoves( const TList & p_list ) {
+    for ( int i = 0; i < p_list.count(); i++ ) {
+        delete( (Move *)p_list.getValue( i ) );
+    }
 }

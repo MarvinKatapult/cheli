@@ -6,6 +6,8 @@ class TList;
 class TList;
 typedef char PieceSymbol;
 
+#include "piece.hpp"
+
 class Logic {
 
     enum HorizontalDirection {
@@ -32,10 +34,11 @@ class Logic {
         TList getLegals( bool check_for_checks = true );
         void getLegals( TList * list, const Square & square );
         void getLegals( TList * legals, int x, int y );
-        int isCheck( void );
+        Pieces::PieceColor isCheck( void );
+        Pieces::PieceColor isCheckmate( void );
 
-        static bool squareHasEnemy( const Square & square, int color );
-        static bool squareHasAlly( const Square & p_square, int p_color );
+        static bool squareHasEnemy( const Square & square, Pieces::PieceColor color );
+        static bool squareHasAlly( const Square & p_square, Pieces::PieceColor p_color );
 
     private:
 
@@ -48,7 +51,9 @@ class Logic {
         void getLegalsKnight( TList * list, const Square & square );
         void getLegalsPawnMove( TList * list, const Square & square );
         void getLegalsPawnCapture( TList * list, const Square & square );
+        void getLegalsPawnEnpassant( TList * list, const Square & start_square );
 
+        bool checkEnpassant( const Square & start_square, int enemy_pawn_start_row, Logic::HorizontalDirection dir );
         void checkPawnCapture( TList * list, const Square & start_square, const Square & dest_square );
         void getLegalsCommon( TList * list, const Square & start_square, HorizontalDirection horizontal, VerticalDirection vertical, int range = 8 );
 

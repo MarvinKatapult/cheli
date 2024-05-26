@@ -7,8 +7,8 @@
 
 #include "tlog.hpp"
 #include "tlist.hpp"
-#include "tstring.hpp"
 
+#include <ctype.h>
 #include <math.h>
 
 #define GET_PAWN_Y_DIRECTION( X )   ( Pieces::getColor( X ) == Pieces::White ? -1 : 1 )
@@ -35,7 +35,6 @@ TList Logic::getLegals( bool p_check_for_checks ) {
 
 void Logic::removeIllegalMoves( TList * p_list ) const {
     if ( !p_list ) return;
-    TLog::log( "Removing Illegal Moves\n" );
 
     for ( int i = p_list->count() - 1; i >= 0; i-- ) {
         Move * move = (Move *)p_list->getValue( i );
@@ -47,8 +46,7 @@ void Logic::removeIllegalMoves( TList * p_list ) const {
         Logic logic( &board );
         Pieces::PieceColor color_that_moves = Pieces::getColor( move->piece() ); 
         if ( logic.isCheck() == color_that_moves ) {
-            TLog::log( "%s is in check. Removing: ", color_that_moves == Pieces::White ? "White" : "Black" );
-            PRINT_MOVE( (*move) );
+            delete( (Move *)p_list->getValue( i ) );
             p_list->remove( i );
         }
     }
@@ -98,6 +96,7 @@ void Logic::getLegalsPawn( TList * p_list, const Square & p_start_square ) {
 
     getLegalsPawnMove( p_list, p_start_square );
     getLegalsPawnCapture( p_list, p_start_square );
+    getLegalsPawnEnpassant( p_list, p_start_square );
 }
 
 void Logic::getLegalsBishop( TList * p_list, const Square & p_start_square ) {
@@ -169,6 +168,7 @@ void Logic::getLegalsPawnMove( TList * p_list, const Square & p_start_square ) {
     Piece pawn = p_start_square.piece;
     const int move_dir = GET_PAWN_Y_DIRECTION( pawn );
 
+    // One Square movement
     Square dest_one_square = myBoard->getSquare( p_start_square.x, p_start_square.y + move_dir );
     bool can_move_one_square = false;
     if ( dest_one_square.isFree() ) {
@@ -178,16 +178,13 @@ void Logic::getLegalsPawnMove( TList * p_list, const Square & p_start_square ) {
     }
     if ( !can_move_one_square ) return;
 
-    bool pawn_on_starting_row = false;
-    if ( Pieces::getColor( pawn ) == Pieces::White ) {
-        pawn_on_starting_row = p_start_square.y == WHITE_PAWN_START_ROW;
-    }
-    else {
-        pawn_on_starting_row = p_start_square.y == BLACK_PAWN_START_ROW;
-    }
+    // Two Square movement
+    Pieces::PieceColor color = Pieces::getColor( pawn );
+    const int start_row = color == Pieces::White ? WHITE_PAWN_START_ROW : BLACK_PAWN_START_ROW;
+    bool pawn_on_starting_row = p_start_square.y == start_row;
     if ( !pawn_on_starting_row ) return; 
 
-    const Square & dest_two_square = myBoard->getSquare( p_start_square.x, p_start_square.y + move_dir * 2 );
+    Square dest_two_square = myBoard->getSquare( p_start_square.x, p_start_square.y + move_dir * 2 );
     if ( pawn_on_starting_row && dest_two_square.isFree() ) {
         Move * move = new Move( p_start_square, dest_two_square );
         p_list->append( (void *)move );
@@ -218,12 +215,59 @@ void Logic::getLegalsPawnCapture( TList * p_list, const Square & p_start_square 
 
 void Logic::checkPawnCapture( TList * p_list, const Square & p_start_square, const Square & p_dest_square ) {
     if ( !p_list ) return;
+
     
     const Piece pawn = p_start_square.piece;
     if ( squareHasEnemy( p_dest_square, Pieces::getColor( pawn ) ) ) {
         Move * move = new Move( p_start_square, p_dest_square );
         p_list->append( (void *)move );
     }
+}
+
+void Logic::getLegalsPawnEnpassant( TList * p_list, const Square & p_start_square ) {
+    if ( !p_list ) return;
+    const int start_x = p_start_square.x;
+    const int start_y = p_start_square.y;
+    const Pieces::PieceColor pawn_color = Pieces::getColor( p_start_square.piece );
+
+    // Pawn has to be on y = 4 || y = 3
+    bool white_pawn_correct_row = start_y == BLACK_PAWN_START_ROW + 2;
+    bool black_pawn_correct_row = start_y == WHITE_PAWN_START_ROW - 2;
+    bool pawn_is_correct_row = ( white_pawn_correct_row && pawn_color == Pieces::White ) || ( black_pawn_correct_row && pawn_color == Pieces::Black );
+    if ( !pawn_is_correct_row ) return;
+
+    const int enemy_pawn_start_row = pawn_color == Pieces::White ? BLACK_PAWN_START_ROW : WHITE_PAWN_START_ROW;
+    bool left_enpassant = checkEnpassant( p_start_square, enemy_pawn_start_row, Left );
+    bool right_enpassant = checkEnpassant( p_start_square, enemy_pawn_start_row, Right );
+    bool found = left_enpassant || right_enpassant;
+    if ( found ) {
+        HorizontalDirection dir = left_enpassant ? Left : Right;
+        const Square dest_square = myBoard->getSquare( start_x + dir, start_y + GET_PAWN_Y_DIRECTION( p_start_square.piece ) );
+        Move * new_move = new Move( p_start_square, dest_square );
+        p_list->append( (void *)new_move );
+    }
+}
+
+bool Logic::checkEnpassant( const Square & p_start_square, int p_enemy_pawn_start_row, Logic::HorizontalDirection p_dir ) {
+    const int start_x = p_start_square.x;
+    const int start_y = p_start_square.y;
+    const int other_pawn_x = start_x + p_dir;
+    if ( !COORD_IS_IN_BOUNDS( other_pawn_x ) ) return false;
+
+    Square other_pawn_sq = myBoard->getSquare( other_pawn_x, start_y );
+    // Check if there is enemy pawn on neighboring square
+    if ( tolower( other_pawn_sq.piece ) == 'p' && squareHasEnemy( other_pawn_sq, Pieces::getColor( p_start_square.piece ) ) ) {
+        // Check if last move was double pawn movement
+        const Move * last_move = myBoard->getLastMove();
+        if ( !last_move ) return false;
+        bool last_move_was_double_pawn = last_move->startY() == p_enemy_pawn_start_row 
+                                      && last_move->destY() == p_start_square.y
+                                      && last_move->destX() == other_pawn_x;
+                                    
+        return last_move_was_double_pawn;
+    }
+
+    return false;
 }
 
 void Logic::getLegalsCommon( TList * p_list, const Square & p_start_square, HorizontalDirection p_horizontal, VerticalDirection p_vertical, int p_range ) {
@@ -251,35 +295,49 @@ void Logic::getLegalsCommon( TList * p_list, const Square & p_start_square, Hori
     } while( i++ < p_range );
 } 
 
-int Logic::isCheck() {
+Pieces::PieceColor Logic::isCheck() {
     TList legals = this->getLegals( false );
 
     for ( int i = 0; i < legals.count(); i++ ) {
         Move * move = (Move *)legals.getValue( i );
-        if ( !move ) return 0;
-        // TLog::log( "Move To Check for Check:>%s<\n", move->getNotation().ascii() );
+        if ( !move ) return Pieces::NoColor;
         Square dest_square = move->destSquare();
         Piece piece = dest_square.piece;
 
         if ( piece == Pieces::BlackKing || piece == Pieces::WhiteKing ) {
-            PRINT_MOVE( (*move) );
-        
-            TLog::log( "Found Check!\n" );
+            Move::freeMoves( legals );
             return Pieces::getColor( piece );
         }
     }
 
-    return -1;
+    Move::freeMoves( legals );
+    return Pieces::NoColor;
 }
 
-bool Logic::squareHasEnemy( const Square & p_square, int p_color ) {
+Pieces::PieceColor Logic::isCheckmate() {
+    Pieces::PieceColor in_check = isCheck();
+    if ( in_check == Pieces::NoColor ) return Pieces::NoColor;
+
+    TList legals = this->getLegals();
+    TList moves_for_in_check = Move::getMoves( legals, in_check );
+
+    Pieces::PieceColor checkmate = Pieces::NoColor;
+    if ( moves_for_in_check.count() == 0 ) {
+        checkmate = in_check; 
+    }
+    
+    Move::freeMoves( legals );
+    return checkmate;
+}
+
+bool Logic::squareHasEnemy( const Square & p_square, Pieces::PieceColor p_color ) {
     Piece piece = p_square.piece;
 
     if ( piece == Pieces::NoPiece ) return false;
     return Pieces::getColor( piece ) != p_color;
 }
 
-bool Logic::squareHasAlly( const Square & p_square, int p_color ) {
+bool Logic::squareHasAlly( const Square & p_square, Pieces::PieceColor p_color ) {
     Piece piece = p_square.piece;
 
     if ( piece == Pieces::NoPiece ) return false;

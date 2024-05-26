@@ -52,6 +52,9 @@ class TList {
         /** Utils **/
 		int count( void ) const { return myLength; }
 		void * getValue( int position ) const;
+
+        /** Operators **/
+        TList & operator=( const TList & other );
 	
 	private:
 

@@ -27,6 +27,7 @@ class Board {
 
         /** Utils **/
         Square getSquare( int x, int y ) const;
+        const Move * getLastMove( void ) const;
         Piece piece( int x, int y ) const;
         void printBoard( void ) const;
 
@@ -38,4 +39,5 @@ class Board {
         void initSquares( void );
 
         Square * mySquares[BOARD_WIDTH][BOARD_HEIGHT];
+        Move * myLastMove;
 };

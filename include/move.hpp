@@ -9,6 +9,9 @@
 #define PRINT_MOVE( MOV )   PRINT_MOVE_C( TLog::White, MOV )
 
 class TString;
+class TList;
+
+#include "piece.hpp"
 
 class Move {
 
@@ -29,6 +32,9 @@ class Move {
         bool hasPiece( Piece piece ) const { return myStartSquare.piece == piece; }
         Piece piece( void ) const { return myStartSquare.piece; }
         TString getNotation( void ) const;
+
+        static TList getMoves( const TList & moves, Pieces::PieceColor color );
+        static void freeMoves( const TList & list );
 
         /** Operators **/
         Move & operator=( const Move & other );

@@ -103,3 +103,13 @@ TListElement * TList::getElement( int p_position ) {
 
 	return current;
 }
+
+TList & TList::operator=( const TList & p_other ) {
+    myLength = 0;
+    
+    for ( int i = 0; i < p_other.count(); i++ ) {
+        append( p_other.getValue( i ) );
+    }
+
+    return *this;
+}

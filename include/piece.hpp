@@ -23,7 +23,8 @@ namespace Pieces {
 
     enum PieceColor {
         White = 0,
-        Black
+        Black,
+        NoColor
     };
 
     /** Utils **/

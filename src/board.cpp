@@ -4,18 +4,22 @@
 
 #include "tlog.hpp"
 
+#include "move.hpp"
 #include "piece.hpp"
 #include "square.hpp"
-#include "move.hpp"
 
 Board::Board( const char * p_fenstring ) {
     initSquares();
     set( p_fenstring );
+
+    myLastMove = 0L;
 }
 
 Board::Board( const Board & p_other ) {
     initSquares();
     set( p_other ); 
+
+    myLastMove = 0L;
 }
 
 void Board::initSquares() {
@@ -32,6 +36,8 @@ Board::~Board() {
             delete mySquares[y][x];
         } 
     }
+
+    if ( myLastMove ) delete myLastMove;
 }
 
 bool Board::set( const char * p_fenstring ) {
@@ -87,11 +93,15 @@ Square Board::getSquare( int p_x, int p_y ) const {
     return *mySquares[p_y][p_x];
 }
 
+const Move * Board::getLastMove() const {
+    return myLastMove;
+}
+
 Piece Board::piece( int p_x, int p_y ) const {
     return mySquares[p_y][p_x]->piece;
 }
 
-void Board::printBoard( void ) const {
+void Board::printBoard() const {
     TLog log( TLog::Red );
     log.print( "  " );
     for ( int i = 0; i < BOARD_WIDTH; i++ ) {
@@ -102,7 +112,7 @@ void Board::printBoard( void ) const {
     for ( int y = 0; y < BOARD_HEIGHT; y++ ) {
         log.print( TLog::White, "%d ", 8 - y );
         for ( int x = 0; x < BOARD_WIDTH; x++ ) {
-            log.print( "%c ", mySquares[y][x]->piece );
+            log.print( Pieces::getColor( mySquares[y][x]->piece ) == Pieces::White ? TLog::Green : TLog::Blue, "%c ", mySquares[y][x]->piece );
         }
         log.print( "\n" );
     }
@@ -116,4 +126,6 @@ Board & Board::operator=( const Board & p_other ) {
 void Board::playMove( const Move & p_move ) {
     mySquares[p_move.startY()][p_move.startX()]->piece = Pieces::NoPiece;
     mySquares[p_move.destY()][p_move.destX()]->piece = p_move.piece();
+
+    myLastMove = new Move( p_move );
 }
