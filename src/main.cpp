@@ -11,18 +11,22 @@ int main() {
 
     TLog log;
 
-    // Board board( "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" );
+    Board board( "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" );
     // Board board( "r7/2K5/8/8/8/8/8/8" );
     // Board board( "8/Rpk5/8/8/8/8/8/8" );
     // Board board( "8/1p6/8/2P5/8/8/8/8" );
     // Board board( "8/8/8/1pP5/8/8/8/8" );
-    Board board( "2k5/6N1/8/3N1B2/8/1R6/6K1/8" );
+    // Board board( "2k5/6N1/8/3N1B2/8/1R6/6K1/8" );
 
     // Move move( board.getSquare( 1, 1 ), board.getSquare( 1, 3 ) );
     // board.playMove( move );
 
     Logic logic( &board );
     TList list = logic.getLegals();
+    for ( int i = 0; i < list.count(); i++ ) {
+        Move * move = (Move *)list.getValue( i );
+        PRINT_MOVE_NOT( (*move) );
+    }
 
     log.print( "Momentanes Board:\n" );
     board.printBoard();
